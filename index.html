@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Lista de Tarefas</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 1000px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+            font-size: 0.95em;
+        }
+
+        th, td { 
+            padding: 12px 15px; 
+            text-align: center; 
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th { 
+            background-color: #f8f9fa; 
+            color: #495057;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background-color: #fcfcfc;
+        }
+
+        .highlight { 
+            background-color: #fff3cd !important; 
+        }
+
+        .footer-sum { 
+            font-weight: bold; 
+            font-size: 1.2em; 
+            text-align: right; 
+            color: #2c3e50;
+            padding: 15px 0;
+            border-top: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        button { 
+            padding: 8px 12px; 
+            margin: 2px; 
+            cursor: pointer; 
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background-color: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-incluir {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1em;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .btn-incluir:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-editar { 
+            background-color: #ffc107; color: #000; 
+        }
+        .btn-editar:hover { 
+            background-color: #ffca2c; 
+        }
+
+        .btn-excluir { 
+            background-color: #dc3545; color: white; 
+        }
+        .btn-excluir:hover { 
+            background-color: #c82333; 
+        }
+
+        .btn-mover { 
+            background-color: #6c757d; color: white; padding: 8px 10px;
+        }
+        .btn-mover:hover:not(:disabled) { 
+            background-color: #5a6268; 
+        }
+
+        .btn-salvar { 
+            background-color: #198754; color: white; width: 100%; padding: 10px; margin-top: 10px; 
+        }
+        .btn-salvar:hover { 
+            background-color: #157347; 
+        }
+
+        .btn-cancelar { 
+            background-color: #f8f9fa; color: #333; border: 1px solid #ccc; width: 100%; padding: 10px; margin-top: 5px; 
+        }
+        .btn-cancelar:hover { 
+            background-color: #e2e6ea; 
+        }
+
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+        }
+
+        .modal-content { 
+            background: #fff; 
+            margin: 5% auto; 
+            padding: 30px; 
+            width: 90%; 
+            max-width: 400px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #1a1a1a;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #495057;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lista de Tarefas</h1>
+        
+        <div class="table-responsive">
+            <table id="tabelaTarefas">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome da Tarefa</th>
+                        <th>Custo (R$)</th>
+                        <th>Data Limite</th>
+                        <th>Ordem de Apresentação</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabela">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-sum" id="rodapeCusto">Custo Total: R$ 0,00</div>
+        
+        <button class="btn-incluir" onclick="abrirModalInclusao()">+ Incluir Nova Tarefa</button>
+    </div>
+
+    <div id="modalTarefa" class="modal">
+        <div class="modal-content">
+            <h2 id="tituloModal">Nova Tarefa</h2>
+            <input type="hidden" id="tarefaId">
+            <div class="form-group">
+                <label>Nome da Tarefa:</label>
+                <input type="text" id="tarefaNome" placeholder="Ex: Comprar materiais" required>
+            </div>
+            <div class="form-group">
+                <label>Custo (R$):</label>
+                <input type="number" id="tarefaCusto" min="0" step="0.01" placeholder="0,00" required>
+            </div>
+            <div class="form-group">
+                <label>Data Limite:</label>
+                <input type="date" id="tarefaData" required>
+            </div>
+            <button class="btn-salvar" onclick="salvarTarefa()">Salvar Tarefa</button>
+            <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        let tarefas = JSON.parse(localStorage.getItem('db_tarefas')) || [];
+
+        function salvarNoBanco() {
+            localStorage.setItem('db_tarefas', JSON.stringify(tarefas));
+            renderizarTabela();
+        }
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        }
+
+        function formatarDataBR(dataISO) {
+            const partes = dataISO.split('-');
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function renderizarTabela() {
+            const tbody = document.getElementById('corpoTabela');
+            tbody.innerHTML = '';
+            let custoTotal = 0;
+
+            tarefas.sort((a, b) => a.ordem - b.ordem);
+
+            tarefas.forEach((tarefa, index) => {
+                custoTotal += parseFloat(tarefa.custo);
+                const tr = document.createElement('tr');
+                
+                if (parseFloat(tarefa.custo) >= 1000) {
+                    tr.classList.add('highlight');
+                }
+
+                tr.innerHTML = `
+                    <td>${tarefa.id}</td>
+                    <td><strong>${tarefa.nome}</strong></td>
+                    <td>${formatarMoeda(tarefa.custo)}</td>
+                    <td>${formatarDataBR(tarefa.data)}</td>
+                    <td>${tarefa.ordem}</td>
+                    <td>
+                        <button class="btn-editar" onclick="abrirModalEdicao(${tarefa.id})">Editar</button>
+                        <button class="btn-excluir" onclick="excluirTarefa(${tarefa.id})">Excluir</button>
+                        <button class="btn-mover" onclick="moverTarefa(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="Mover para cima">↑</button>
+                        <button class="btn-mover" onclick="moverTarefa(${index}, 1)" ${index === tarefas.length - 1 ? 'disabled' : ''} title="Mover para baixo">↓</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('rodapeCusto').innerText = `Custo Total: ${formatarMoeda(custoTotal)}`;
+        }
+
+        function abrirModalInclusao() {
+            document.getElementById('tituloModal').innerText = 'Incluir Nova Tarefa';
+            document.getElementById('tarefaId').value = '';
+            document.getElementById('tarefaNome').value = '';
+            document.getElementById('tarefaCusto').value = '';
+            document.getElementById('tarefaData').value = '';
+            document.getElementById('modalTarefa').style.display = 'block';
+        }
+
+        function abrirModalEdicao(id) {
+            const tarefa = tarefas.find(t => t.id === id);
+            document.getElementById('tituloModal').innerText = 'Editar Tarefa';
+            document.getElementById('tarefaId').value = tarefa.id;
+            document.getElementById('tarefaNome').value = tarefa.nome;
+            document.getElementById('tarefaCusto').value = tarefa.custo;
+            document.getElementById('tarefaData').value = tarefa.data;
+            document.getElementById('modalTarefa').style.display = 'block';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalTarefa').style.display = 'none';
+        }
+
+        function salvarTarefa() {
+            const id = document.getElementById('tarefaId').value;
+            const nome = document.getElementById('tarefaNome').value.trim();
+            const custo = parseFloat(document.getElementById('tarefaCusto').value);
+            const data = document.getElementById('tarefaData').value;
+
+            if (!nome || isNaN(custo) || !data) {
+                alert('Todos os campos são obrigatórios!');
+                return;
+            }
+
+            const nomeDuplicado = tarefas.find(t => t.nome.toLowerCase() === nome.toLowerCase() && t.id != id);
+            if (nomeDuplicado) {
+                alert('Já existe uma tarefa com este nome. A alteração não pode ser feita.');
+                return;
+            }
+
+            if (id) {
+                const index = tarefas.findIndex(t => t.id == id);
+                tarefas[index].nome = nome;
+                tarefas[index].custo = custo;
+                tarefas[index].data = data;
+            } else {
+                const novoId = tarefas.length > 0 ? Math.max(...tarefas.map(t => t.id)) + 1 : 1;
+                const novaOrdem = tarefas.length > 0 ? Math.max(...tarefas.map(t => t.ordem)) + 1 : 1;
+                
+                tarefas.push({
+                    id: novoId,
+                    nome: nome,
+                    custo: custo,
+                    data: data,
+                    ordem: novaOrdem
+                });
+            }
+
+            salvarNoBanco();
+            fecharModal();
+        }
+
+        function excluirTarefa(id) {
+            if (confirm('Deseja realmente excluir esta tarefa? (Sim/Não)')) {
+                tarefas = tarefas.filter(t => t.id !== id);
+                salvarNoBanco();
+            }
+        }
+
+        function moverTarefa(index, direcao) {
+            const novaPosicao = index + direcao;
+            
+            if (novaPosicao >= 0 && novaPosicao < tarefas.length) {
+                const ordemAtual = tarefas[index].ordem;
+                tarefas[index].ordem = tarefas[novaPosicao].ordem;
+                tarefas[novaPosicao].ordem = ordemAtual;
+                
+                salvarNoBanco();
+            }
+        }
+
+        renderizarTabela();
+    </script>
+</body>
+</html>

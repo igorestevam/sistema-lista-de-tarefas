@@ -65,6 +65,16 @@
             background-color: #fff3cd !important; 
         }
 
+        #tabelaTarefas td:last-child {
+            white-space: nowrap;
+        }
+
+        #tabelaTarefas td:nth-child(2) {
+            max-width: 250px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
         .footer-sum { 
             font-weight: bold; 
             font-size: 1.2em; 
@@ -105,44 +115,22 @@
             margin: 0 auto;
         }
 
-        .btn-incluir:hover {
-            background-color: #0b5ed7;
-        }
+        .btn-incluir:hover { background-color: #0b5ed7; }
 
-        .btn-editar { 
-            background-color: #ffc107; color: #000; 
-        }
-        .btn-editar:hover { 
-            background-color: #ffca2c; 
-        }
+        .btn-editar { background-color: #ffc107; color: #000; }
+        .btn-editar:hover { background-color: #ffca2c; }
 
-        .btn-excluir { 
-            background-color: #dc3545; color: white; 
-        }
-        .btn-excluir:hover { 
-            background-color: #c82333; 
-        }
+        .btn-excluir { background-color: #dc3545; color: white; }
+        .btn-excluir:hover { background-color: #c82333; }
 
-        .btn-mover { 
-            background-color: #6c757d; color: white; padding: 8px 10px;
-        }
-        .btn-mover:hover:not(:disabled) { 
-            background-color: #5a6268; 
-        }
+        .btn-mover { background-color: #6c757d; color: white; padding: 8px 10px;}
+        .btn-mover:hover:not(:disabled) { background-color: #5a6268; }
 
-        .btn-salvar { 
-            background-color: #198754; color: white; width: 100%; padding: 10px; margin-top: 10px; 
-        }
-        .btn-salvar:hover { 
-            background-color: #157347; 
-        }
+        .btn-salvar { background-color: #198754; color: white; width: 100%; padding: 10px; margin-top: 10px; }
+        .btn-salvar:hover { background-color: #157347; }
 
-        .btn-cancelar { 
-            background-color: #f8f9fa; color: #333; border: 1px solid #ccc; width: 100%; padding: 10px; margin-top: 5px; 
-        }
-        .btn-cancelar:hover { 
-            background-color: #e2e6ea; 
-        }
+        .btn-cancelar { background-color: #f8f9fa; color: #333; border: 1px solid #ccc; width: 100%; padding: 10px; margin-top: 5px; }
+        .btn-cancelar:hover { background-color: #e2e6ea; }
 
         .modal { 
             display: none; 
@@ -178,9 +166,7 @@
             margin-bottom: 20px;
         }
 
-        .form-group { 
-            margin-bottom: 15px; 
-        }
+        .form-group { margin-bottom: 15px; }
         
         label { 
             display: block; 

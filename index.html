@@ -75,6 +75,12 @@
             white-space: normal;
         }
 
+        #tabelaTarefas td:nth-child(3) {
+            max-width: 200px;
+            word-break: break-all;
+            white-space: normal;
+        }
+
         .footer-sum { 
             font-weight: bold; 
             font-size: 1.2em; 
@@ -83,6 +89,8 @@
             padding: 15px 0;
             border-top: 2px solid #e0e0e0;
             margin-bottom: 20px;
+            word-break: break-all;
+            overflow-wrap: break-word;
         }
 
         button { 
@@ -249,8 +257,25 @@
             renderizarTabela();
         }
 
-        function formatarMoeda(valor) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        function stringParaCentavos(valorStr) {
+            if (!valorStr) return 0n;
+            let partes = valorStr.toString().replace(/,/g, '.').split('.');
+            let inteiros = partes[0] || "0";
+            let decimais = partes[1] || "00";
+            if (decimais.length === 1) decimais += "0";
+            if (decimais.length > 2) decimais = decimais.substring(0, 2);
+            return BigInt(inteiros + decimais);
+        }
+
+        function formatarCentavosParaMoeda(centavosBigInt) {
+            let str = centavosBigInt.toString();
+            while (str.length < 3) {
+                str = "0" + str;
+            }
+            let inteiros = str.slice(0, -2);
+            let decimais = str.slice(-2);
+            inteiros = inteiros.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return "R$ " + inteiros + "," + decimais;
         }
 
         function formatarDataBR(dataISO) {
@@ -261,22 +286,24 @@
         function renderizarTabela() {
             const tbody = document.getElementById('corpoTabela');
             tbody.innerHTML = '';
-            let custoTotal = 0;
+            let custoTotalCentavos = 0n; 
 
             tarefas.sort((a, b) => a.ordem - b.ordem);
 
             tarefas.forEach((tarefa, index) => {
-                custoTotal += parseFloat(tarefa.custo);
+                let centavos = stringParaCentavos(tarefa.custo);
+                custoTotalCentavos += centavos;
+                
                 const tr = document.createElement('tr');
                 
-                if (parseFloat(tarefa.custo) >= 1000) {
+                if (centavos >= 100000n) {
                     tr.classList.add('highlight');
                 }
 
                 tr.innerHTML = `
                     <td>${tarefa.id}</td>
                     <td><strong>${tarefa.nome}</strong></td>
-                    <td>${formatarMoeda(tarefa.custo)}</td>
+                    <td>${formatarCentavosParaMoeda(centavos)}</td>
                     <td>${formatarDataBR(tarefa.data)}</td>
                     <td>${tarefa.ordem}</td>
                     <td>
@@ -289,7 +316,13 @@
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('rodapeCusto').innerText = `Custo Total: ${formatarMoeda(custoTotal)}`;
+            document.getElementById('rodapeCusto').innerText = `Custo Total: ${formatarCentavosParaMoeda(custoTotalCentavos)}`;
+        }
+
+        function focarCampoNome() {
+            setTimeout(() => {
+                document.getElementById('tarefaNome').focus();
+            }, 100);
         }
 
         function abrirModalInclusao() {
@@ -299,6 +332,7 @@
             document.getElementById('tarefaCusto').value = '';
             document.getElementById('tarefaData').value = '';
             document.getElementById('modalTarefa').style.display = 'block';
+            focarCampoNome();
         }
 
         function abrirModalEdicao(id) {
@@ -306,36 +340,50 @@
             document.getElementById('tituloModal').innerText = 'Editar Tarefa';
             document.getElementById('tarefaId').value = tarefa.id;
             document.getElementById('tarefaNome').value = tarefa.nome;
-            document.getElementById('tarefaCusto').value = tarefa.custo;
+            document.getElementById('tarefaCusto').value = tarefa.custo; 
             document.getElementById('tarefaData').value = tarefa.data;
             document.getElementById('modalTarefa').style.display = 'block';
+            focarCampoNome();
         }
 
         function fecharModal() {
             document.getElementById('modalTarefa').style.display = 'none';
         }
 
+        function normalizarTexto(texto) {
+            return texto.replace(/\s+/g, ' ').trim().toLowerCase();
+        }
+
         function salvarTarefa() {
             const id = document.getElementById('tarefaId').value;
-            const nome = document.getElementById('tarefaNome').value.trim();
-            const custo = parseFloat(document.getElementById('tarefaCusto').value);
+            const nomeRaw = document.getElementById('tarefaNome').value.trim(); 
+            const nomeFormatado = nomeRaw.replace(/\s+/g, ' '); 
+            
+            const custoRaw = document.getElementById('tarefaCusto').value.trim();
             const data = document.getElementById('tarefaData').value;
 
-            if (!nome || isNaN(custo) || !data) {
+            if (!nomeFormatado || !custoRaw || !data) {
                 alert('Todos os campos são obrigatórios!');
                 return;
             }
 
-            const nomeDuplicado = tarefas.find(t => t.nome.toLowerCase() === nome.toLowerCase() && t.id != id);
+            if (custoRaw.includes('-')) {
+                alert('O custo não pode ser um valor negativo!');
+                return;
+            }
+
+            const nomeLimpo = normalizarTexto(nomeFormatado);
+            const nomeDuplicado = tarefas.find(t => normalizarTexto(t.nome) === nomeLimpo && String(t.id) !== String(id));
+            
             if (nomeDuplicado) {
                 alert('Já existe uma tarefa com este nome. A alteração não pode ser feita.');
                 return;
             }
 
             if (id) {
-                const index = tarefas.findIndex(t => t.id == id);
-                tarefas[index].nome = nome;
-                tarefas[index].custo = custo;
+                const index = tarefas.findIndex(t => String(t.id) === String(id));
+                tarefas[index].nome = nomeFormatado; 
+                tarefas[index].custo = custoRaw; 
                 tarefas[index].data = data;
             } else {
                 const novoId = tarefas.length > 0 ? Math.max(...tarefas.map(t => t.id)) + 1 : 1;
@@ -343,8 +391,8 @@
                 
                 tarefas.push({
                     id: novoId,
-                    nome: nome,
-                    custo: custo,
+                    nome: nomeFormatado,
+                    custo: custoRaw, 
                     data: data,
                     ordem: novaOrdem
                 });
